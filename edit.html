@@ -1,161 +1,168 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jeopardy! Редактор</title>
+  <meta charset="UTF-8">
+  <title>Jeopardy Editor</title>
   <style>
     body {
-      background: #0d0f1a;
-      color: #ffffff;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', 'Noto Sans', sans-serif;
+      background-color: #111;
+      color: #eee;
+      max-width: 800px;
+      margin: 0 auto;
       padding: 20px;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
-      font-size: 2rem;
-      color: #00ffe7;
+      color: #0ff;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+    }
+    textarea {
+      height: 100px;
+    }
+    .category-block {
+      border: 1px solid #444;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 8px;
+      background-color: #222;
+    }
+    .output {
+      margin-top: 30px;
+      background: #222;
+      padding: 15px;
+      border-radius: 8px;
+      word-break: break-all;
+      font-family: monospace;
+    }
+    button {
+      background-color: #0ff;
+      color: #000;
+      font-weight: bold;
+      padding: 10px 20px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
     .logo {
-      display: flex;
-      justify-content: center;
+      text-align: center;
       margin-bottom: 10px;
     }
     .logo img {
       height: 60px;
+      filter: drop-shadow(0 0 6px #0ff);
     }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    select, input[type="text"], textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1rem;
-    }
-    textarea {
-      height: 80px;
-    }
-    .category {
-      border: 1px solid #00ffe7;
-      border-radius: 12px;
-      padding: 10px;
-      margin-top: 10px;
-    }
-    button {
-      background: #00ffe7;
-      color: #000;
-      padding: 10px 20px;
-      border: none;
-      font-size: 1rem;
-      border-radius: 8px;
-      margin-top: 20px;
-      cursor: pointer;
-    }
-    .output {
-      background: #1c1e2a;
-      padding: 10px;
-      margin-top: 20px;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      font-size: 0.9rem;
+    .logo p {
+      font-size: 14px;
+      color: #ccc;
+      margin-top: 5px;
+      font-weight: 500;
     }
   </style>
 </head>
 <body>
+
   <div class="logo">
-    <img src="https://yourcdn.com/kgb-logo.png" alt="КГБ Логотип" />
+    <img src="https://nikashum93.github.io/pusyriki/assets/kgb-logo.png" alt="KGB Logo">
+    <p>Корпорация Геймификации Будущего</p>
   </div>
+
   <h1>Jeopardy! Редактор</h1>
-  <label>Язык интерфейса:
-    <select id="lang">
-      <option value="ru">Русский</option>
-      <option value="en">English</option>
-      <option value="fr">Français</option>
-    </select>
-  </label>
-  <label>Количество команд:
-    <select id="teams">
-      <option>2</option>
-      <option>3</option>
-      <option>4</option>
-    </select>
-  </label>
-  <label>Количество категорий:
-    <select id="categories">
-      <option>3</option>
-      <option>4</option>
-      <option>5</option>
-      <option>6</option>
-    </select>
-  </label>
-  <label>Стиль игры:
-    <select id="style">
-      <option value="kids">Детский</option>
-      <option value="neon">Неоновый</option>
-      <option value="lux">Люксовый</option>
-    </select>
-  </label>
 
-  <div id="categoryContainer"></div>
+  <label for="numCategories">Количество категорий (3–6):</label>
+  <select id="numCategories" onchange="renderCategories()">
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6" selected>6</option>
+  </select>
 
-  <button onclick="generateCode()">Сгенерировать код</button>
+  <div id="categoriesContainer"></div>
+
+  <label for="numTeams">Количество команд:</label>
+  <select id="numTeams">
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
+
+  <label for="language">Язык интерфейса:</label>
+  <select id="language">
+    <option value="ru">Русский</option>
+    <option value="en">English</option>
+    <option value="fr">Français</option>
+  </select>
+
+  <label for="style">Стиль оформления:</label>
+  <select id="style">
+    <option value="default">Обычный</option>
+    <option value="neon">Неон</option>
+    <option value="kids">Детский</option>
+    <option value="lux">Люкс</option>
+  </select>
+
+  <button onclick="generateCode()">Сгенерировать код вставки</button>
+
   <div class="output" id="output"></div>
 
   <script>
-    const categoryContainer = document.getElementById('categoryContainer');
-    const catCountSelect = document.getElementById('categories');
-
-    catCountSelect.addEventListener('change', updateCategories);
-
-    function updateCategories() {
-      const count = parseInt(catCountSelect.value);
-      categoryContainer.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const cat = document.createElement('div');
-        cat.className = 'category';
-        cat.innerHTML = `
-          <label>Категория ${i + 1}:
-            <input type="text" placeholder="Название категории" class="cat-title">
-          </label>
-          <label>Вопросы (по одному в строке):
-            <textarea class="cat-questions" placeholder="Вопрос 1\nВопрос 2\n...\nВопрос 6"></textarea>
-          </label>
+    function renderCategories() {
+      const num = parseInt(document.getElementById('numCategories').value);
+      const container = document.getElementById('categoriesContainer');
+      container.innerHTML = '';
+      for (let i = 0; i < num; i++) {
+        const block = document.createElement('div');
+        block.className = 'category-block';
+        block.innerHTML = `
+          <label>Категория ${i + 1}:</label>
+          <input type="text" id="cat-${i}" placeholder="Название категории">
+          <label>Вопросы (один на строке, 4–6 штук):</label>
+          <textarea id="q-${i}" placeholder="Вопрос 1\nВопрос 2\n..."></textarea>
         `;
-        categoryContainer.appendChild(cat);
+        container.appendChild(block);
       }
     }
 
     function generateCode() {
-      const lang = document.getElementById('lang').value;
-      const teams = document.getElementById('teams').value;
-      const style = document.getElementById('style').value;
-      const cats = document.querySelectorAll('.cat-title');
-      const questions = document.querySelectorAll('.cat-questions');
-
+      const num = parseInt(document.getElementById('numCategories').value);
       const categories = [];
-      for (let i = 0; i < cats.length; i++) {
-        categories.push({
-          title: cats[i].value,
-          questions: questions[i].value.split('\n').map(q => q.trim()).filter(Boolean)
-        });
+      const questions = [];
+
+      for (let i = 0; i < num; i++) {
+        const cat = document.getElementById(`cat-${i}`).value.trim();
+        const qList = document.getElementById(`q-${i}`).value.trim().split('\n').map(q => q.trim()).filter(q => q);
+        if (cat && qList.length >= 4) {
+          categories.push(encodeURIComponent(cat));
+          questions.push(qList.map(q => encodeURIComponent(q)).join('|'));
+        }
       }
 
-      const url = new URL('https://yourdomain.com/jeopardy/main.html');
-      url.searchParams.set('lang', lang);
-      url.searchParams.set('teams', teams);
-      url.searchParams.set('style', style);
-      url.searchParams.set('categories', encodeURIComponent(JSON.stringify(categories)));
+      const teams = document.getElementById('numTeams').value;
+      const lang = document.getElementById('language').value;
+      const style = document.getElementById('style').value;
 
-      const iframe = `<iframe src="${url}" width="100%" height="600" style="border:none"></iframe>`;
+      const url = `https://nikashum93.github.io/jeopardy/?cats=${categories.join(',')}&qs=${questions.join('~')}&teams=${teams}&lang=${lang}&style=${style}`;
+
+      const iframe = `<iframe src="${url}" width="100%" height="600" style="border:none;"></iframe>`;
       document.getElementById('output').innerText = iframe;
     }
 
-    // Инициализация
-    updateCategories();
+    // начальная отрисовка
+    renderCategories();
   </script>
+
 </body>
 </html>
