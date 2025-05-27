@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jeopardy Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      font-family: 'Inter', 'Noto Sans', sans-serif;
+      background: #111;
+      color: white;
+      overflow: hidden;
+    }
+    .board {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      background: #222;
+      font-weight: bold;
+      text-align: center;
+    }
+    .categories div {
+      padding: 10px;
+      border: 1px solid #444;
+    }
+    .questions {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-auto-rows: 1fr;
+    }
+    .questions button {
+      background: #0044aa;
+      border: 1px solid #333;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      height: 100%;
+      width: 100%;
+    }
+    .questions button:disabled {
+      background: #111;
+      color: #444;
+      cursor: default;
+    }
+    .question-popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10;
+    }
+    .question-popup h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .question-popup button {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 10px;
+    }
+    .scoreboard {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      display: flex;
+      gap: 20px;
+    }
+    .team-score {
+      background: #333;
+      padding: 10px 15px;
+      border-radius: 8px;
+    }
+    .turn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="board">
+  <div class="categories" id="categories"></div>
+  <div class="questions" id="questions"></div>
+</div>
+
+<div class="scoreboard" id="scoreboard"></div>
+<div class="turn" id="turn"></div>
+
+<div class="question-popup" id="popup" style="display:none;">
+  <h2 id="popup-question">Question text</h2>
+  <div>
+    <button onclick="answer(true)">✅ Верно</button>
+    <button onclick="answer(false)">❌ Неверно</button>
+  </div>
+</div>
+
+<script>
+  const categories = ['Grammar', 'Vocabulary', 'Phrases', 'Culture', 'Spelling', 'Idioms'];
+  const questions = {
+    'Grammar': ['What is Present Simple?', 'Name 3 modal verbs.', 'Form a question.', 'Past of "go"?', 'Article before vowel?', 'Is "run" irregular?'],
+    'Vocabulary': ['Fruit with seeds?', 'Opposite of tall?', 'Name 5 animals.', 'What is "book"?', 'Synonym of "fast"?', 'Translate "school".'],
+    'Phrases': ['How to greet?', 'Say goodbye.', 'Apologize.', 'Ask for help.', 'Compliment.', 'Refuse politely.'],
+    'Culture': ['Capital of UK?', 'Famous US holiday?', 'UK vs US spelling?', 'School uniforms?', 'British food?', 'American president?'],
+    'Spelling': ['Spell "beautiful".', 'Spell "because".', 'Spell "Wednesday".', 'Spell "friend".', 'Spell "really".', 'Spell "different".'],
+    'Idioms': ['"Break the ice"?', '"Piece of cake"?', '"Hit the sack"?', '"Cold feet"?', '"Spill the beans"?', '"Jump the gun"?']
+  };
+
+  const points = [100, 200, 300, 400, 500, 600];
+  const teams = ['Team 1', 'Team 2'];
+  const scores = Array(teams.length).fill(0);
+  let currentTeam = 0;
+
+  const categoriesDiv = document.getElementById('categories');
+  const questionsDiv = document.getElementById('questions');
+  const popup = document.getElementById('popup');
+  const popupQuestion = document.getElementById('popup-question');
+  const scoreboard = document.getElementById('scoreboard');
+  const turnDisplay = document.getElementById('turn');
+
+  let currentPoints = 0;
+  let lastCell = null;
+
+  function updateTurn() {
+    turnDisplay.innerText = `Ход: ${teams[currentTeam]}`;
+  }
+
+  function updateScores() {
+    scoreboard.innerHTML = '';
+    scores.forEach((s, i) => {
+      const div = document.createElement('div');
+      div.className = 'team-score';
+      div.innerText = `${teams[i]}: ${s}`;
+      scoreboard.appendChild(div);
+    });
+  }
+
+  function showQuestion(text, cell, pts) {
+    currentPoints = pts;
+    lastCell = cell;
+    popupQuestion.innerText = text;
+    popup.style.display = 'flex';
+  }
+
+  function answer(correct) {
+    popup.style.display = 'none';
+    if (correct) {
+      scores[currentTeam] += currentPoints;
+    } else {
+      currentTeam = (currentTeam + 1) % teams.length;
+    }
+    lastCell.disabled = true;
+    updateScores();
+    updateTurn();
+  }
+
+  categories.forEach(cat => {
+    const div = document.createElement('div');
+    div.innerText = cat;
+    categoriesDiv.appendChild(div);
+  });
+
+  for (let i = 0; i < points.length; i++) {
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.innerText = points[i];
+      btn.onclick = () => showQuestion(questions[cat][i], btn, points[i]);
+      questionsDiv.appendChild(btn);
+    });
+  }
+
+  updateScores();
+  updateTurn();
+</script>
+
+</body>
+</html>
